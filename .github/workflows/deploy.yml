@@ -1,0 +1,50 @@
+name: Test and Deploy
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t ahmadsaid/react-test -f ./client/Dockerfile.dev ./client
+      - name: Run tests
+        run: docker run -e CI=true ahmadsaid/react-test npm run test
+      # - name: Checkout code
+      #   uses: actions/checkout@v4
+      # # - name: Log in to Docker Hub
+      # #   run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
+      # - name: Build Docker image
+      #   run: docker build -t ahmadsaid/docker-react -f Dockerfile.dev .
+      # - name: Run tests
+      #   run: docker run -e CI=true ahmadsaid/docker-react npm run test
+      # # - run: docker run ahmadsaid/docker-react npm run test -- --coverage
+
+      
+  build_push_images:
+    needs: test     # Wait for test job to succeed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build Docker images for production
+        run: |
+          docker build -t ahmadsaid/muilti-client ./client
+          docker build -t ahmadsaid/muilti-nginx ./nginx
+          docker build -t ahmadsaid/muilti-server ./server
+          docker build -t ahmadsaid/muilti-worker ./worker
+      
+      - name: Log in to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Push Docker images to Docker Hub
+        run: |
+          docker push ahmadsaid/muilti-client
+          docker push ahmadsaid/muilti-nginx
+          docker push ahmadsaid/muilti-server
+          docker push ahmadsaid/muilti-worker

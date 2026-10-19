@@ -1,0 +1,62 @@
+version: '3'
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=mysecretpassword # must needed
+    # ports:
+    #   - "5432:5432"
+  redis:
+    image: 'redis:latest'
+    # ports:
+    #   - "6379:6379"
+  nginx:
+    restart: always
+    depends_on:
+      - api
+      - client  
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
+    ports:
+      - "80:80"
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - ./server:/app
+    environment: # values aren't saved in the image, they are only available at runtime when the container is running
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_USER=postgres
+      - POSTGRES_HOST=postgres # matches the service name of the postgres container in this docker-compose file
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=mysecretpassword  # default PostgreSQL password found in the official PostgreSQL Docker image documentation
+      # - POSTGRES_PASSWORD=postgres_password # default PostgreSQL password found in the official PostgreSQL Docker image documentation
+      - POSTGRES_PORT=5432 # default PostgreSQL port
+    ports:
+      - "5000:5000"
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - ./client:/app
+    environment:
+      - WDS_SOCKET_PORT=0 # Webpack Dev Server socket port
+  worker:
+    build: 
+      context: ./worker
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - ./worker:/app
+    environment: # values aren't saved in the image, they are only available at runtime when the container is running
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    
