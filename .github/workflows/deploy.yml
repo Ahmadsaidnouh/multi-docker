@@ -32,12 +32,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Build Docker images for production
-        run: |
-          docker build -t ahmadsaid/muilti-client ./client
-          docker build -t ahmadsaid/muilti-nginx ./nginx
-          docker build -t ahmadsaid/muilti-server ./server
-          docker build -t ahmadsaid/muilti-worker ./worker
+      # - name: Build Docker images for production
+      #   run: |
+      #     docker build -t ahmadsaid/muilti-client ./client
+      #     docker build -t ahmadsaid/muilti-nginx ./nginx
+      #     docker build -t ahmadsaid/muilti-server ./server
+      #     docker build -t ahmadsaid/muilti-worker ./worker
+      - name: Build Docker client image
+        run: docker build -t ahmadsaid/muilti-client ./client
+      
+      - name: Build Docker nginx image
+        run: docker build -t ahmadsaid/muilti-nginx ./nginx
+
+      - name: Build Docker server image
+        run: docker build -t ahmadsaid/muilti-server ./server
+
+      - name: Build Docker worker image
+        run: docker build -t ahmadsaid/muilti-worker ./worker
       
       - name: Log in to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
