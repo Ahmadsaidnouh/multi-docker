@@ -5,8 +5,8 @@ const redisClient = redis.createClient({
     socket: {
         host: keys.redisHost,
         port: keys.redisPort,
-    },
-    retry_strategy: () => 1000  // retries every 1000ms, tells the redisClient to retry connection every 1000ms if lost connection with Redis
+        retry_strategy: () => 1000  // retries every 1000ms, tells the redisClient to retry connection every 1000ms if lost connection with Redis
+    }
 });
 
 function fib(index) {

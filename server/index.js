@@ -37,12 +37,18 @@ const redisClient = redis.createClient({
     socket: {
         host: keys.redisHost,
         port: keys.redisPort,
+        retry_strategy: () => 1000
     },
-    retry_strategy: () => 1000
 });
-redisClient.connect();
+// const redisClient = redis.createClient({
+//   url: `redis://${keys.redisHost}:${keys.redisPort}`,
+//   retry_strategy: () => 1000,
+// });
 const redisPublisher = redisClient.duplicate();
-redisPublisher.connect();
+(async () => {
+    await redisClient.connect();
+    await redisPublisher.connect();
+})(); // Immediately Invoked Function Expression (IIFE) to connect Redis clients asynchronously
 
 // Express route handlers
 app.get('/', (req, res) => {
